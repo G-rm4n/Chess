@@ -1,4 +1,6 @@
 import re
+import Tablero
+import Tree
 
 class Jugador:
 
@@ -40,8 +42,49 @@ class Jugador:
                 break
 
         return eleccion
+    
+class JugadorPc(Jugador):
+
+    def __init__(self, color):
+        self.color=color
+        
+    
+    def generateBitBoards(self,Board:list):
+        IDX_BLACK=13
+        IDX_WHITE=12
+        IDX_OCCUPIED=14
         
 
+        BitBoards=[0 for i in range (15)]
+        ColorDictionary={
+            "W":6,
+            "B":0
+        }
+
+        PieceDictionary={
+            "rey":0,
+            "peon":1,
+            "torre":2,
+            "alfil":3,
+            "caballo":4,
+            "reina":5
+
+        }
 
 
+        for i in range(8):
+            for j in range(8):
 
+                piece=Board[i][j]
+
+                if piece is None:
+                    continue
+
+                mascara=1<<(i*8)+j
+
+                BitBoards[ColorDictionary[piece.get_color()]+PieceDictionary[piece.getTipo()]]= BitBoards[ColorDictionary[piece.get_color()]+PieceDictionary[piece.getTipo()]] | mascara
+                BitBoards[IDX_WHITE if piece.get_color()=="W" else IDX_BLACK]=BitBoards[IDX_WHITE if piece.get_color()=="W" else IDX_BLACK] | mascara
+            
+        BitBoards[IDX_OCCUPIED]=BitBoards[IDX_WHITE]|BitBoards[IDX_BLACK]
+
+        return BitBoards

@@ -37,6 +37,9 @@ class Tablero:
     def guardarEstado(self):
         return copy.deepcopy(self.posciciones)
     
+    def getPosciciones(self):
+        return self.posciciones
+    
     def restaurarEstado(self,estado):
         self.posciciones=estado
         return self.posciciones

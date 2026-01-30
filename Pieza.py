@@ -1,6 +1,6 @@
 from abc import ABC, abstractclassmethod
 
-class Pieza(ABC):
+class Piece(ABC):
 
     def __init__(self,color,id):
         self.color=color
@@ -30,16 +30,16 @@ class Pieza(ABC):
         return "T"
     
     @abstractclassmethod
-    def validarMov(self):
+    def validateMovement(self):
         raise NotImplementedError("not implemented")
     
     @abstractclassmethod
-    def getTipo(self):
+    def getType(self):
         raise NotImplementedError("Not implemented")
     
-class Peon(Pieza):
+class Pawn(Piece):
 
-    def validarMov(self,origin,destiny,isAttack=bool):
+    def validateMovement(self,origin,destiny,isAttack=bool):
         dy=destiny[0]-origin[0]
         dx=destiny[1]-origin[1]
         
@@ -58,59 +58,59 @@ class Peon(Pieza):
 
             return dy==displacement or dy==displacement*incremento
     
-    def getTipo(self):
-        return "peon"
+    def getType(self):
+        return "PAWN"
                 
 
-class Torre(Pieza):
+class Tower(Piece):
 
-    def validarMov(self,origin,destiny,isAttack=bool):
+    def validateMovement(self,origin,destiny,isAttack=bool):
         dy=abs(destiny[0]-origin[0])
         dx=abs(destiny[1]-origin[1])
         return dy==0 or dx==0
     
-    def getTipo(self):
-        return "torre"
+    def getType(self):
+        return "TOWER"
 
-class Alfil(Pieza):
+class Bishop(Piece):
 
-    def validarMov(self,origin,destiny,isAttack=bool):
+    def validateMovement(self,origin,destiny,isAttack=bool):
         dy=abs(destiny[0]-origin[0])
         dx=abs(destiny[1]-origin[1])
         return dy==dx
     
-    def getTipo(self):
-        return "alfil"
+    def getType(self):
+        return "BISHOP"
 
-class Rey(Pieza):
+class King(Piece):
 
-    def validarMov(self,origin,destiny,isAttack=bool):
+    def validateMovement(self,origin,destiny,isAttack=bool):
         dy=abs(destiny[0]-origin[0])
         dx=abs(destiny[1]-origin[1])
         return dx==1 or dy==1
     
-    def getTipo(self):
-        return "rey"
+    def getType(self):
+        return "KING"
     
-class Caballo(Pieza):
+class Horse(Piece):
 
     def get_type_movement(self):
         return "NT"
 
-    def validarMov(self,origin,destiny,isAttack=bool):
+    def validateMovement(self,origin,destiny,isAttack=bool):
         dy=abs(destiny[0]-origin[0])
         dx=abs(destiny[1]-origin[1])
         return ((dx==2 and dy==1) or (dx==1 and dy==2))
     
-    def getTipo(self):
-        return "caballo"
+    def getType(self):
+        return "HORSE"
 
-class reina(Pieza):
+class Queen(Piece):
 
-    def validarMov(self,origin,destiny,isAttack=bool):
+    def validateMovement(self,origin,destiny,isAttack=bool):
         dy=abs(destiny[0]-origin[0])
         dx=abs(destiny[1]-origin[1])
         return dx==0 or dy==0 or dx==dy
     
-    def getTipo(self):
-        return "reina"
+    def getType(self):
+        return "QUEEN"

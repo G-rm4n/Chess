@@ -1,3 +1,5 @@
+import Tablero
+
 
 class GameMaster:
 
@@ -6,205 +8,217 @@ class GameMaster:
         self.hayEnroque=hayE
         self.temporizador=temporizador
 
-    def getAtacantesX(self,tablero,casilla,color):
+    def getAttackersX(self,Board:Tablero.Board,square,color):
 
-        dx1=casilla[1]
-        dx2=7 - casilla[1]
+        attackers=[]
 
-        distanciaHorizontal=[dx1,dx2]
+        resul=Board.generateHorizontalSquares(square)
 
-        direcciones=[-1,1]
+        for squaree in resul:
 
-        atacantes=[]
+            piece=Board.getPiece(squaree)
 
-        for distancia, direccion in zip(distanciaHorizontal,direcciones):
+            if (piece is not None and
+                piece.get_color()!=color and
+                piece.validateMovement(squaree,square,True)):
+
+                attackers.append(squaree)
         
-            resul=tablero.verificarOcupacionTrayectoria(casilla,(casilla[0],casilla[1]+(direccion*distancia)))
-                
-            if (resul is not None and
-                 not(tablero.get_pieza(resul).get_color()==color)
-                 and tablero.get_pieza(resul).validarMov(casilla)):
-                
-                atacantes.append(resul)
-
-        return atacantes
+        return attackers
     
-    #verifica si la utlima casilla devuelta por el tablero es la de destino y si hay una pieza verifica que sea del otro equipo 
-    def verificarCasilla(self,destino,ultimaCasilla,color,tablero):
-        return destino==ultimaCasilla and tablero.get_pieza(ultimaCasilla).get_color()!=color
-
-    def isAttack(self,destino,color,tablero):
-        return (tablero.get_pieza(destino) is not None) and tablero.get_pieza(destino).get_color()!=color
+    def isOccupied(self,square,board):
+        return board.getPiece(square) is not None
     
-    def verificar_legalidad_turno(self,origen,destino,tablero,color):
-        pieza=tablero.get_pieza(origen)
+    def isAttack(self,destiny,board,color):
+        return board.isOccupied(destiny) and board.getPiece(destiny).get_color()!=color
+    
+    def verifyLegality(self,origin,destiny,Board:Tablero.Board,color):
+        piece=Board.getPiece(origin)
 
-        if pieza is None or pieza.get_color()!=color:
+        if piece is None or piece.get_color()!=color:
+            return False
+
+        isAttack=self.isAttack(destiny,Board,color)
+
+        if not(piece.validateMovement(origin,destiny,isAttack)):
             return False
         
-        isAttack=self.isAttack(destino,color,tablero)
+        occupiedsquare=Board.verifyOccupancyRay(origin,destiny)
 
 
-        if not(pieza.validarMov(origen,destino,isAttack)):
+        if occupiedsquare is not None and piece.get_type_movement()=="T":
             return False
         
-        casilla=tablero.verificarOcupacionTrayectoria(origen,destino)
-
-        if casilla is not None and not(self.verificarCasilla(destino,casilla,color,tablero)) and pieza.get_type_movement()=="T":
+        if Board.isOccupied(destiny) and not(isAttack):
             return False
-
-        if not(self.simularMovimiento(origen,destino,color,tablero)):
+        
+        if not(self.simulateMovement(origin,destiny,color,Board)):
             return False
         
         return True
         
 
-    def verificarPromocion(self,pieza,poscicion):
-        y=0 if pieza.get_color()=="B" else 7
-        return pieza.getTipo()=="peon" and poscicion[0]==y
+    def verifyPromotion(self,piece,square):
+        y=0 if piece.get_color()=="B" else 7
+        return piece.getType()=="PAWN" and square[0]==y
     
-    def simularMovimiento(self,origen,destino,color,tablero):
+    def simulateMovement(self,origin,destiny,color,Board):
         
-        estado=tablero.guardarEstado()
+        estado=Board.saveStatus()
 
-        tablero.efectuarMovimiento(origen,destino)
+        Board.makeMove(origin,destiny)
 
-        resultado=self.evaluarJaque(color,tablero)
+        result=self.evaluateCheck(color,Board)
 
-        tablero.restaurarEstado(estado)
+        Board.chargeStatus(estado)
 
-        if resultado is not None:
-            return True
+        if len(result) !=0:
+            return False
         
-        return False
+        return True
 
     
-    def getAtacantesY(self,tablero,casilla,color):
+    def getAttackersY(self,Board:Tablero.Board,square,color):
 
-        dy1=casilla[0]
-        dy2=7-casilla[0]
+        attackers=[]
 
-        distanciaVertical=[dy1,dy2]
+        resul=Board.generateVerticalSquares(square)
 
-        direcciones=[-1,1]
+        for squaree in resul:
 
-        atacantes=[]
+            piece=Board.getPiece(squaree)
 
+            if (piece is not None and
+                piece.get_color()!=color and
+                piece.validateMovement(squaree,square,True)):
 
-        for distancia, direccion in zip(distanciaVertical,direcciones):
+                attackers.append(squaree)
 
-            resul=tablero.verificarOcupacionTrayectoria(casilla,(casilla[0]+(direccion*distancia),casilla[1]))
+        return attackers
+    
+    def getAttackersDiag(self,Board:Tablero.Board,square,color):
+
+        attackers=[]
+
+        resul=Board.generateDiagonalSquare(square)
+
+        
+
+        for squaree in resul:
+
+            piece=Board.getPiece(squaree)
+
+            if (piece is not None and
+                piece.get_color()!=color and
+                piece.validateMovement(squaree,square)):
+
+                attackers.append(squaree)
             
-            if (resul is not None and
-                 not(tablero.get_pieza(resul).get_color()==color)
-                 and tablero.get_pieza(resul).validarMov(resul,casilla)):
-                
-                atacantes.append(resul)
+        return attackers
+    
+    def getHorseAttackers(self,Board,square,color):
+
+        horseDisplacements=[(-2,-1), (-2,1), (-1,-2), (-1,2), (1,-2), (1,2), (2,-1), (2,1)]
+
+        horseSquares=[(square[0]+dy,square[1]+dx)
+                            for dy, dx in horseDisplacements
+                            if 0<=square[0]+dy<=7 and 0<=square[1]+dx<=7]
         
-        return atacantes
-    
-    def getAtacantesDiag(self,tablero,casilla,color):
+        attackers=[]
 
-        dx1=casilla[1]
-        dx2=7 - casilla[1]
-        dy1=casilla[0]
-        dy2=7-casilla[0]
-
-        vectoresDiagonales=[(-1,-1),(1,-1),(-1,1),(1,1)]
-
-        incrementos=[
-            min(dx1,dy1),
-            min(dx1,dy2),
-            min(dx2,dy1),
-            min(dx2,dy2),
-        ]
-
-        atacantes=[]
-
-        for (dey,dex),incremento in zip(vectoresDiagonales,incrementos):
-            resul=tablero.verificarOcupacionTrayectoria(casilla,(casilla[0]+(dey*incremento),casilla[1]+(dex*incremento)))
-
-            if (resul is not None and
-                 not(tablero.get_pieza(resul).get_color()==color)
-                 and tablero.get_pieza(resul).validarMov(resul,casilla)):
+        for squareHorse in horseSquares:
                 
-                atacantes.append(resul)
-
-        return atacantes
-    
-    def getAtacantesCab(self,tablero,casilla,color):
-
-        desplazamientosCaballo=[(-2,-1), (-2,1), (-1,-2), (-1,2), (1,-2), (1,2), (2,-1), (2,1)]
-
-        poscicionesCaballo=[(casilla[0]+dy,casilla[1]+dx)
-                            for dy, dx in desplazamientosCaballo
-                            if 0<=casilla[0]+dy<=7 and 0<=casilla[1]+dx<=7]
-        
-        atacantes=[]
-
-        for pos in poscicionesCaballo:
+            piece=Board.getPiece(squareHorse)
+            if  (piece is not None and
+                 not(piece.get_color()==color)
+                 and piece.validateMovement(squareHorse,square,True)):
                 
-            pieza=tablero.get_pieza(pos)
-            if  (pieza is not None and
-                 not(pieza.get_color()==color)
-                 and pieza.validarMov(casilla,pos)):
-                
-                atacantes.append(pos)
+                attackers.append(squareHorse)
 
-        return atacantes
+        return attackers
     
-    
-    def evaluarAtaque(self,tablero,poscicion,color):
+    #si es el color de la persona en turno, se obtendran todas las piezas del jugador fuera de turno que pueden atacarlo
+    #si es el color del jugador fuera de turno, se obtendran todas las piezas del jugador en turno que pueden atacarlo
+    def evaluateAttack(self,Board,square,color):
 
-        list1=self.getAtacantesX(tablero,poscicion,color)
-        list2=self.getAtacantesY(tablero,poscicion,color)
-        list3=self.getAtacantesDiag(tablero,poscicion,color)
-        list4=self.getAtacantesCab(tablero,poscicion,color)
+        list1=self.getAttackersX(Board,square,color)
+        list2=self.getAttackersY(Board,square,color)
+        list3=self.getAttackersDiag(Board,square,color)
+        list4=self.getHorseAttackers(Board,square,color)
         
         return list1+list2+list3+list4
     
-    def evaluarJaque(self,color,tablero):
-        posRey=tablero.get_rey_poscicion(color)
+    def evaluateCheck(self,color,Board):
+        posRey=Board.getKingSquare(color)
 
 
-        atacantes=self.evaluarAtaque(tablero,posRey,color)
+        attackers=self.evaluateAttack(Board,posRey,color)
 
-        return atacantes
+        
+
+        return attackers
 
     
-    def evaluarJaqueMate(self,tablero,atacantes,color):
+    def evaluateCheckMate(self,Board:Tablero.Board,attackers,color):
 
-        poscicion=tablero.get_rey_poscicion(color)
+        kingSquare=Board.getKingSquare(color)
         
-        if len(atacantes)==1:
+        if len(attackers)==1:
 
-            if len(self.evaluarAtaque(tablero,(atacantes[0][1],atacantes[0][0]),tablero.get_pieza(atacantes[0]).get_color()))!=0:
+            attacker=attackers[0]
+            
+            counterResponse=self.evaluateAttack(Board,attacker,Board.getPiece(attacker).get_color())
+
+            
+            if len(counterResponse)!=0 and any(self.verifyLegality(counter,attacker,Board,color) 
+                                                for counter in counterResponse):
+                
+                
                 return False
             
-            if tablero.get_pieza(atacantes[0]).get_type_movement()!="NT":
+            if Board.getPiece(attacker).get_type_movement()!="NT":
+                                          
+                intermediateSquares=Board.getIntermediateSquare(kingSquare,attacker)
+
                 
-                casillasIntermedias=tablero.get_casillas_intermedias(poscicion,atacantes[0])
 
-                for casilla in casillasIntermedias:
+                #print(f"casillas intermedias entre el atacante y el rey:{intermediateSquares}")
+                #input()
 
-                    if (self.evaluarAtaque(tablero,casilla,tablero.get_pieza(atacantes[0]).get_color())) > 0:
+                for square in intermediateSquares:
+
+                    myColorAttackers=self.evaluateAttack(Board,square,Board.getPiece(attacker).get_color())
+
+                    if any(self.verifyLegality(myColorAttacker,attacker,Board,color)
+                                                for myColorAttacker in myColorAttackers):
+                        
+                        return False
+                    
+                
+        
+        kingDisplacements=((0,-1),(0,1),(-1,0),(1,0),(-1,-1),(1,-1),(-1,1),(1,1))
+
+        possibleSquares=[(kingSquare[0]+dy,kingSquare[1]+dx)
+                             for dy,dx in kingDisplacements
+                             if 0<=kingSquare[0]+dy<=7 and 0<=kingSquare[1]+dx<=7]
+        
+        #print(f"las posibles casillas a donde puede moverse el rey son:{possibleSquares}")
+        
+        for squares in possibleSquares:
+
+            piece=Board.getPiece(squares)
+
+            if (piece is None or piece.get_color()!=color):
+
+                if len(self.evaluateAttack(Board,squares,color))==0:
+
+                    if self.verifyLegality(kingSquare,squares,Board,color):
+                        input()
+
                         return False
 
-        
-        desplazamientosRey=((0,-1),(0,1),(-1,0),(1,0),(-1,-1),(1,-1),(-1,1),(1,1))
-
-        poscicionesPosibles=[(poscicion[0]+dy,poscicion[1]+dx)
-                             for dy,dx in desplazamientosRey
-                             if 0<=poscicion[0]+dy<=7 and 0<=poscicion[1]+dx<=7]
-        
-        for posciciones in poscicionesPosibles:
-
-            if ((tablero.get_pieza(posciciones) is None or
-                tablero.get_pieza(posciciones).get_color()!=color) and
-                self.evaluarAtaque(tablero,posciciones,color))==0:
-
-                return False
-            
+            #print(f"la casilla: {squares} esta atacada o vacia o tiene a alguien del rey por lo cual el rey esta en jaque")
+    
         return True
 
 

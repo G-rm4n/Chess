@@ -11,69 +11,75 @@ class Chess:
     
     def __init__(self):
         self.gameMaster=GameMaster.GameMaster(False,False,50)
-        self.tablero=Tablero.Tablero()
+        self.tablero=Tablero.Board()
         self.historialAcciones=[]
         self.jugadores=[None,None]
 
-    def Preparar_Jugadores(self):
+    def preparePlayers(self):
         
         for i in range(2):
 
-            nombre=input("Ingrese el nombre de que utilizara las fichas "+ ("Negras" if i%2==0 else "Blancas")+": ")
-            self.jugadores[i]=Jugador.Jugador("B" if i%2==0 else "W",nombre)
+            name=input("Ingrese el name de que utilizara las fichas "+ ("BLANCAS" if i%2==0 else "NEGRAS")+": ")
+            self.jugadores[i]=Jugador.Player("W" if i%2==0 else "B",name)
 
         return self.jugadores
     
-    def crearMovimiento(self,origen,destino,isAttack):
-        Mov=Movimiento.Movimiento(origen,destino,isAttack)
+    def createMovement(self,origin,destiny,isAttack):
+        Mov=Movimiento.Movement(origin,destiny,isAttack)
         return Mov
 
-    def registrarMovimiento(self,Movimiento):
-        self.historialAcciones.append(Movimiento)
+    def registerMovement(self,movement):
+        self.historialAcciones.append(movement)
     
-    def incrementarMovimientos(self,Pieza):
-        Pieza.incr_mov()
+    def incrementMovements(self,piece):
+        piece.incr_mov()
     
-    def jugarTurno(self,indice):
+    def playRound(self,index):
+        attackers=[]
         
 
         if self.historialAcciones:
-            Atacantes=self.gameMaster.evaluarJaque(self.jugadores[indice].get_color(),self.tablero)
-            if len(Atacantes) >0 and self.gameMaster.evaluarJaqueMate(self.tablero,Atacantes,self.jugadores[indice].get_color()):
+            attackers=self.gameMaster.evaluateCheck(self.jugadores[index].get_color(),self.tablero)
+            if len(attackers)>0 and self.gameMaster.evaluateCheckMate(self.tablero,attackers,self.jugadores[index].get_color()):
                 return False
         
         while True:
-            print(f"es turno de {self.jugadores[indice].get_nombre()}")
+            
             self.mostrarTablero(self.tablero)
-            origen,destino=self.jugadores[indice].make_choice()
+            print(f"es turno de {self.jugadores[index].get_name()}")
 
-            if not(self.tablero.validar_coordenadas(origen,destino)) :
-                print("coordenadas inavlidas...")
+            if len(attackers)>0:
+                print(self.jugadores[index].get_name()+" tu rey esta en Jaque!!!")
+
+            origin,destiny=self.jugadores[index].make_choice()
+
+            if not(self.tablero.validateCoords(origin,destiny)) :
+                print("coordenadas invalidas...")
                 time.sleep(3)
 
                 continue
             
-            if not(self.gameMaster.verificar_legalidad_turno(origen,destino,self.tablero,self.jugadores[indice].get_color())):
-                print("Movimiento ilegal...")
+            if not(self.gameMaster.verifyLegality(origin,destiny,self.tablero,self.jugadores[index].get_color())):
+                print("movement ilegal...")
                 time.sleep(3)
 
                 continue
 
-            isAttack=self.gameMaster.isAttack(destino,self.jugadores[indice].get_color(),self.tablero)
+            isAttack=self.gameMaster.isAttack(destiny,self.tablero,self.jugadores[index].get_color())
 
-            mov=self.crearMovimiento(origen,destino,isAttack)
+            mov=self.createMovement(origin,destiny,isAttack)
             
             if isAttack:
-                piezaCaptura=self.tablero.get_pieza(destino)
-                mov.set_capture(piezaCaptura)
+                capturePiece=self.tablero.getPiece(destiny)
+                mov.set_capture(capturePiece)
             
-            self.registrarMovimiento(mov)
-            self.incrementarMovimientos(self.tablero.get_pieza(origen))
+            self.registerMovement(mov)
+            self.incrementMovements(self.tablero.getPiece(origin))
 
-            self.tablero.efectuarMovimiento(origen,destino)
+            self.tablero.makeMove(origin,destiny)
             
-            if self.gameMaster.verificarPromocion(self.tablero.get_pieza(destino),destino):
-                self.realizarPromocion(destino,indice)
+            if self.gameMaster.verifyPromotion(self.tablero.getPiece(destiny),destiny):
+                self.makePromotion(destiny,index)
 
             input()
 
@@ -82,22 +88,22 @@ class Chess:
         return True
         
     def mostrarTablero(self,tablero):
-        diccionarioSimbolos={
+        symbolDictionary={
             "W":{
-                "rey":"♔",
-                "reina":"♕",
-                "torre":"♖",
-                "alfil":"♗",
-                "caballo":"♘",
-                "peon":"♙"
+                "KING":"♔",
+                "QUEEN":"♕",
+                "TOWER":"♖",
+                "BISHOP":"♗",
+                "HORSE":"♘",
+                "PAWN":"♙"
             },
             "B":{
-                "rey":"♚",
-                "reina":"♛",
-                "torre":"♜",
-                "alfil":"♝",
-                "caballo":"♞",
-                "peon":"♟"
+                "KING":"♚",
+                "QUEEN":"♛",
+                "TOWER":"♜",
+                "BISHOP":"♝",
+                "HORSE":"♞",
+                "PAWN":"♟"
             },
         }
 
@@ -106,9 +112,9 @@ class Chess:
 
         for i in range(8):
             for j in range(8):
-                contenidoCasilla=tablero.get_pieza((i,j))
-                if(contenidoCasilla!=None):
-                    print(diccionarioSimbolos[contenidoCasilla.get_color()][contenidoCasilla.getTipo()],sep=None,end="\t")
+                squareContent=tablero.getPiece((i,j))
+                if(squareContent!=None):
+                    print(symbolDictionary[squareContent.get_color()][squareContent.getType()],sep=None,end="\t")
                 else:
                     print("□",sep=None,end="\t") if (i%2!=0 and j%2==0) or (i%2==0 and j%2!=0) else print("■",sep=None,end="\t")
                 
@@ -116,13 +122,13 @@ class Chess:
 
     
     def IniciarJuego(self):
-        self.Preparar_Jugadores()
-        self.tablero.prepararTablero()
+        self.preparePlayers()
+        self.tablero.prepareBoard()
         
         i=0
         while True:
             
-            if not(self.jugarTurno(i%2)):
+            if not(self.playRound(i%2)):
                 break
 
             i=i+1
@@ -130,18 +136,18 @@ class Chess:
         print("fin del juego")
 
 
-    def realizarPromocion(self,poscicion,indice):
+    def makePromotion(self,square,index):
 
-        print("las piezas que puede obtener por Promocion son: 'Reina','Alfil','Caballo','Torre' \n")
+        print("las piezas que puede obtener por Promocion son: 'QUEEN','BISHOP','Caballo','TOWER' \n")
 
-        tipo=(self.jugadores[indice].make_Choice_Promocion()).lower()
+        tipo=(self.jugadores[index].make_Choice_Promotion()).lower()
 
-        pieza=self.tablero.crear_nueva_pieza(tipo,self.jugadores[indice].get_color())
+        pieza=self.tablero.createNewPiece(tipo,self.jugadores[index].get_color())
 
-        self.tablero.asignar_pieza(poscicion,pieza)
+        self.tablero.assingPiece(square,pieza)
 
-        self.registrarPromocion(poscicion,pieza)
+        self.registerPromotion(square,pieza)
 
-    def registrarPromocion(self,poscicion,pieza):
-        self.historialAcciones.append(Promocion.Promocion(poscicion,pieza))
+    def registerPromotion(self,square,pieza):
+        self.historialAcciones.append(Promocion.Promocion(square,pieza))
         return self.historialAcciones

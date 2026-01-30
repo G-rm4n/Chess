@@ -1,30 +1,30 @@
 import Pieza
 import Jugador
 
-class Movimiento:
+class Movement:
 
     def __init__(self,origin,destiny,isCapture):
-        self.origen=origin
-        self.destino=destiny
+        self.origin=origin
+        self.destiny=destiny
         self.isCaptura=isCapture
-        self.piezaCapturada=Pieza.Pieza
-        self.Jugador=Jugador
+        self.capturedPiece=Pieza.Piece
+        self.Jugador=Jugador.Player
     
     def get_origin(self):
-        return self.origen
+        return self.origin
 
     def get_destiny(self):
-        return self.destino
+        return self.destiny
     
     def get_isCapture(self):
         return self.isCaptura
     
     
     def set_capture(self,p_captured=Pieza):
-        self.piezaCapturada=p_captured
-        return self.piezaCapturada
+        self.capturedPiece=p_captured
+        return self.capturedPiece
     
     def get_player(self):
-        return self.jugador
+        return self.Player
     
      

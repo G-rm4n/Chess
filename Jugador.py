@@ -1,14 +1,15 @@
 import re
 import Tablero
+from constants import *
 
-class Jugador:
+class Player:
 
-    def __init__(self,color,nombre):
-        self.nombre=nombre
+    def __init__(self,color,name):
+        self.name=name
         self.color=color
     
-    def get_nombre(self):
-        return self.nombre
+    def get_name(self):
+        return self.name
     
     def get_color(self):
         return self.color
@@ -20,32 +21,32 @@ class Jugador:
         patron=r"^\((\d),(\d)\)$"
 
         while True:
-            origen=input("ingresar coordenada de origen en la forma '(Y,X)':")
-            match=re.match(patron,origen)
+            origin=input("ingresar coordenada de origen en la forma '(Y,X)':")
+            match=re.match(patron,origin)
             if(match):
-                origen=(int(match.group(1)),int(match.group(2)))
+                origin=(int(match.group(1)),int(match.group(2)))
                 break
 
         while True:
-            destino=input("ingresar coordenada de destino en la forma '(Y,X)':")
-            match=re.match(patron,destino)
+            destiny=input("ingresar coordenada de destino en la forma '(Y,X)':")
+            match=re.match(patron,destiny)
             if(match):
-                destino=(int(match.group(1)),int(match.group(2)))
+                destiny=(int(match.group(1)),int(match.group(2)))
                 break
         
-        return origen,destino
+        return origin,destiny
     
-    def make_Choice_Promocion(self):
-        tipoPieza=["TORRE","ALFIL","REINA","CABALLO"]
+    def make_Choice_Promotion(self):
+        pieceType=["TORRE","ALFIL","REINA","CABALLO"]
 
         while True:
-            eleccion=input("Ingrese que pieza desea obtener por promocion:").upper()
-            if eleccion in tipoPieza:
+            choice=input("Ingrese que pieza desea obtener por promocion:").upper()
+            if choice in pieceType:
                 break
 
-        return eleccion
+        return choice
     
-class JugadorPc(Jugador):
+class BotPlayer(Player):
 
     def __init__(self, color,enemyColor,height):
         self.color=color
@@ -57,28 +58,27 @@ class JugadorPc(Jugador):
     def get_type(self):
         return "BOT"
         
-    def make_Choice_Promocion(self):
-        return "REINA"
+    def make_Choice_Promotion(self):
+        return "QUEEN"
     
     def generateBitBoards(self,Board:list):
+
         IDX_BLACK=13
         IDX_WHITE=6
         IDX_OCCUPIED=14
         
 
         BitBoards=[0 for i in range (15)]
-        ColorDictionary={
-            "W":7,
-            "B":0
-        }
+        
 
         PieceDictionary={
-            "rey":0,
-            "peon":1,
-            "torre":2,
-            "alfil":3,
-            "caballo":4,
-            "reina":5
+            
+            "KING":0,
+            "PAWN":1,
+            "TOWER":2,
+            "BISHOP":3,
+            "HORSE":4,
+            "QUEEN":5
 
         }
 
@@ -91,16 +91,16 @@ class JugadorPc(Jugador):
                 if piece is None:
                     continue
 
-                mascara=1<<(i*8)+j
+                mask=1<<(i*8)+j
 
-                BitBoards[ColorDictionary[piece.get_color()]+PieceDictionary[piece.getTipo()]]= BitBoards[ColorDictionary[piece.get_color()]+PieceDictionary[piece.getTipo()]] | mascara
-                BitBoards[IDX_WHITE if piece.get_color()=="W" else IDX_BLACK]=BitBoards[IDX_WHITE if piece.get_color()=="W" else IDX_BLACK] | mascara
+                BitBoards[colorDictionary[piece.get_color()]+PieceDictionary[piece.getType()]]= BitBoards[colorDictionary[piece.get_color()]+PieceDictionary[piece.getType()]] | mask
+                BitBoards[IDX_WHITE if piece.get_color()=="W" else IDX_BLACK]=BitBoards[IDX_WHITE if piece.get_color()=="W" else IDX_BLACK] | mask
             
         BitBoards[IDX_OCCUPIED]=BitBoards[IDX_WHITE]|BitBoards[IDX_BLACK]
 
         return BitBoards
     
-    def generateIndividualBitboard(self,GlobalBitboard):
+    def GenerateIndividualBitboard(self,GlobalBitboard):
 
         IndividualBitBoards=[]
 
@@ -131,10 +131,7 @@ class JugadorPc(Jugador):
             "Q":5
         }
 
-        colorDictionary={
-            "B":0,
-            "W":7
-        }
+        
 
         pseudo_legal_Movements=self.GeneratePseudoLegalMovementsPawn(Bitboards[PieceDictionary["P"] + colorDictionary[color]],
                                                                 Bitboards[IDX_WHITE_BITBOARD],
@@ -145,7 +142,7 @@ class JugadorPc(Jugador):
 
             capture=self.make_move_on_Bitboard(Bitboards,move,color)
 
-            if self.evaluarJaque(Bitboards,color):
+            if self.isKingSafe(Bitboards,color):
 
                 legalMovements.append(move)
             
@@ -245,19 +242,7 @@ class JugadorPc(Jugador):
         IDX_WHITE_BITBOARD=6
         IDX_BLACK_BITBOARD=13
 
-        PieceDictionary={
-            "K":0,
-            "P":1,
-            "T":2,
-            "B":3,
-            "H":4,
-            "Q":5
-        }
-
-        colorDictionary={
-            "B":0,
-            "W":7
-        }
+        
 
         pseudo_legal_Movements=self.GeneratePseudoLegalMovementsTower(Bitboards[PieceDictionary["T"] + colorDictionary[color]],
                                                                 Bitboards[IDX_WHITE_BITBOARD],
@@ -268,7 +253,7 @@ class JugadorPc(Jugador):
 
             capture=self.make_move_on_Bitboard(Bitboards,move,color)
 
-            if self.evaluarJaque(Bitboards,color):
+            if self.isKingSafe(Bitboards,color):
 
                 legalMovements.append(move)
             
@@ -285,7 +270,7 @@ class JugadorPc(Jugador):
         COL_1 = 0x0101010101010101  
         COL_8 = 0x8080808080808080 
 
-        towers=self.generateIndividualBitboard(Bitboard)
+        towers=self.GenerateIndividualBitboard(Bitboard)
 
         for tower in towers:
             
@@ -390,21 +375,9 @@ class JugadorPc(Jugador):
         IDX_WHITE_BITBOARD=6
         IDX_BLACK_BITBOARD=13
 
-        PieceDictionary={
-            "K":0,
-            "P":1,
-            "T":2,
-            "B":3,
-            "H":4,
-            "Q":5
-        }
+        
 
-        colorDictionary={
-            "B":0,
-            "W":7
-        }
-
-        pseudo_legal_Movements=self.generatePseudoLegalMovementsBishop(Bitboards[PieceDictionary["B"] + colorDictionary[color]],
+        pseudo_legal_Movements=self.GeneratePseudoLegalMovementsBishop(Bitboards[PieceDictionary["B"] + colorDictionary[color]],
                                                                     Bitboards[IDX_WHITE_BITBOARD],
                                                                     Bitboards[IDX_BLACK_BITBOARD],
                                                                     color)
@@ -413,7 +386,7 @@ class JugadorPc(Jugador):
 
             capture=self.make_move_on_Bitboard(Bitboards,move,color)
 
-            if self.evaluarJaque(Bitboards,color):
+            if self.isKingSafe(Bitboards,color):
 
                 legalMovements.append(move)
             
@@ -421,7 +394,7 @@ class JugadorPc(Jugador):
         
         return legalMovements
     
-    def generatePseudoLegalMovementsBishop(self,Bitboard:int,BitboardOccupied_White:int,BitboardOccupied_Black,color):
+    def GeneratePseudoLegalMovementsBishop(self,Bitboard:int,BitboardOccupied_White:int,BitboardOccupied_Black,color):
         LegalMovements=[]
 
         ROW_1 = 0b11111111
@@ -430,7 +403,7 @@ class JugadorPc(Jugador):
         COL_1 = 0x0101010101010101  
         COL_8 = 0x8080808080808080
 
-        Bishops=self.generateIndividualBitboard(Bitboard)
+        Bishops=self.GenerateIndividualBitboard(Bitboard)
 
         for bishop in Bishops:
 
@@ -549,14 +522,11 @@ class JugadorPc(Jugador):
             "Q":5
         }
 
-        colorDictionary={
-            "B":0,
-            "W":7
-        }
+        
 
         LegalMovements=[]
 
-        pseudo_Legal_movements=self.generatePseudoLegalMovementsHorse(Bitboards[PieceDictionary["H"]+colorDictionary[color]],
+        pseudo_Legal_movements=self.GeneratePseudoLegalMovementsHorse(Bitboards[PieceDictionary["H"]+colorDictionary[color]],
                                                                       Bitboards[IDX_WHITE_BITBOARD],
                                                                       Bitboards[IDX_BLACK_BITBOARD],
                                                                       color)
@@ -565,17 +535,17 @@ class JugadorPc(Jugador):
 
             capture=self.make_move_on_Bitboard(Bitboards,move,color)
 
-            if self.evaluarJaque(Bitboards,color):
+            if self.isKingSafe(Bitboards,color):
                 LegalMovements.append(move)
             
             self.unmake_move(Bitboards,move,capture,color)
         
         return LegalMovements
 
-    def generatePseudoLegalMovementsHorse(self,Bitboard:int,BitboardOccupied_White:int,BitboardOccupied_Black,color):
+    def GeneratePseudoLegalMovementsHorse(self,Bitboard:int,BitboardOccupied_White:int,BitboardOccupied_Black,color):
         LegalMovements=[]
 
-        Horses=self.generateIndividualBitboard(Bitboard)
+        Horses=self.GenerateIndividualBitboard(Bitboard)
 
         ROW_1 = 0b11111111
         ROW_8 = ROW_1<<56
@@ -628,12 +598,9 @@ class JugadorPc(Jugador):
             "Q":5
         }
 
-        colorDictionary={
-            "B":0,
-            "W":7
-        }
+        
 
-        pseudo_legal_Movements=self.generatePseudoLegalMovementsQueen(Bitboards[PieceDictionary["Q"] + colorDictionary[color]],
+        pseudo_legal_Movements=self.GeneratePseudoLegalMovementsQueen(Bitboards[PieceDictionary["Q"] + colorDictionary[color]],
                                                                     Bitboards[IDX_WHITE_BITBOARD],
                                                                     Bitboards[IDX_BLACK_BITBOARD],
                                                                     color)
@@ -642,7 +609,7 @@ class JugadorPc(Jugador):
 
             capture=self.make_move_on_Bitboard(Bitboards,move,color)
 
-            if self.evaluarJaque(Bitboards,color):
+            if self.isKingSafe(Bitboards,color):
 
                 legalMovements.append(move)
             
@@ -651,11 +618,11 @@ class JugadorPc(Jugador):
         return legalMovements
 
 
-    def generatePseudoLegalMovementsQueen(self,Bitboard:int,BitboardOccupied_White:int,BitboardOccupied_Black,color):
+    def GeneratePseudoLegalMovementsQueen(self,Bitboard:int,BitboardOccupied_White:int,BitboardOccupied_Black,color):
 
         LegalMovements=[]
 
-        BishopMovements=self.generatePseudoLegalMovementsBishop(Bitboard,BitboardOccupied_White,BitboardOccupied_Black,color)
+        BishopMovements=self.GeneratePseudoLegalMovementsBishop(Bitboard,BitboardOccupied_White,BitboardOccupied_Black,color)
         TowerMovements=self.GeneratePseudoLegalMovementsTower(Bitboard,BitboardOccupied_White,BitboardOccupied_Black,color)
 
         LegalMovements=BishopMovements + TowerMovements
@@ -672,20 +639,6 @@ class JugadorPc(Jugador):
         IDX_WHITE_BITBOARD=6
         IDX_BLACK_BITBOARD=13
 
-        PieceDictionary={
-            "K":0,
-            "P":1,
-            "T":2,
-            "B":3,
-            "H":4,
-            "Q":5
-        }
-
-        colorDictionary={
-            "B":0,
-            "W":7
-        }
-
         pseudo_legal_Movements=self.generatePseudoLegalMovementsKing(Bitboards[PieceDictionary["K"] + colorDictionary[color]],
                                                                     Bitboards[IDX_WHITE_BITBOARD],
                                                                     Bitboards[IDX_BLACK_BITBOARD],
@@ -695,7 +648,7 @@ class JugadorPc(Jugador):
 
             capture=self.make_move_on_Bitboard(Bitboards,move,color)
 
-            if self.evaluarJaque(Bitboards,color):
+            if self.isKingSafe(Bitboards,color):
 
                 legalMovements.append(move)
             
@@ -741,8 +694,8 @@ class JugadorPc(Jugador):
 
         captured=None
 
-        startallie=0 if color=="B" else 7
-        startenemie=7 if color=="B" else 0
+        startallie=7 if color=="B" else 0
+        startenemie=0 if color=="B" else 7
         globalBitboardallie=IDX_WHITE_BITBOARD if color=="W" else IDX_BLACK_BITBOARD
         globalBitboardenemie=IDX_BLACK_BITBOARD if color=="B" else IDX_WHITE_BITBOARD
 
@@ -779,7 +732,7 @@ class JugadorPc(Jugador):
         IDX_WHITE_BITBOARD=6
         IDX_BLACK_BITBOARD=13
 
-        startallie=0 if color=="B" else 7
+        startallie=7 if color=="B" else 0
 
         globalBitboardallie=IDX_WHITE_BITBOARD if color=="W" else IDX_BLACK_BITBOARD
         globalBitboardenemie=IDX_BLACK_BITBOARD if color=="B" else IDX_WHITE_BITBOARD
@@ -806,7 +759,7 @@ class JugadorPc(Jugador):
 
 
 
-    def evaluarJaque(self,Bitboards,color):
+    def isKingSafe(self,Bitboards,color):
 
         ROW_1_2 = 0x000000000000FFFF
         ROW_8_7 = 0xFFFF000000000000
@@ -818,13 +771,13 @@ class JugadorPc(Jugador):
         MaskH = 0x7F7F7F7F7F7F7F7F
 
         
-        kingBitboard=Bitboards[0 if color=="B" else 7]
-        enemyHorses=Bitboards[11 if color=="B" else 4]
-        enemyPawns=Bitboards[8 if color=="B" else 1]
-        enemyTowers=Bitboards[9 if color=="B" else 2]
-        enemyQueen=Bitboards[12 if color=="B" else 5]
-        enemyBishops=Bitboards[10 if color=="B" else 3]
-        enemyKing=Bitboards[7 if color=="B" else 0]
+        kingBitboard=Bitboards[0 if color=="W" else 7]
+        enemyHorses=Bitboards[11 if color=="W" else 4]
+        enemyPawns=Bitboards[8 if color=="W" else 1]
+        enemyTowers=Bitboards[9 if color=="W" else 2]
+        enemyQueen=Bitboards[12 if color=="W" else 5]
+        enemyBishops=Bitboards[10 if color=="W" else 3]
+        enemyKing=Bitboards[7 if color=="W" else 0]
 
 
         PossibleHorses=(((kingBitboard & (~(COL_8_7)) & (~(ROW_8_7)))<<17) | 
@@ -839,28 +792,28 @@ class JugadorPc(Jugador):
         if PossibleHorses & enemyHorses:
             return False
         
-        Vray1=self.generateVerticalRay(Bitboards,kingBitboard,dy=1)
-        Vray2=self.generateVerticalRay(Bitboards,kingBitboard,dy=(-1))
+        Vray1=self.GenerateVerticalRay(Bitboards,kingBitboard,dy=1)
+        Vray2=self.GenerateVerticalRay(Bitboards,kingBitboard,dy=(-1))
         
         if (Vray1 | Vray2) & (enemyQueen | enemyTowers | enemyKing):
             return False
         
-        diagRay1=self.generateDiagonalRay(Bitboards,kingBitboard,dx=1,dy=1)
+        diagRay1=self.GenerateDiagonalRay(Bitboards,kingBitboard,dx=1,dy=1)
 
         if diagRay1 &  (enemyPawns | enemyQueen | enemyBishops | enemyKing):
             return False
         
-        diagRay2=self.generateDiagonalRay(Bitboards,kingBitboard,dx=1,dy=(-1))
+        diagRay2=self.GenerateDiagonalRay(Bitboards,kingBitboard,dx=1,dy=(-1))
 
         if diagRay2 &  (enemyPawns | enemyQueen | enemyBishops | enemyKing):
             return False        
         
-        diagRay3=self.generateDiagonalRay(Bitboards,kingBitboard,dx=(-1),dy=1)
+        diagRay3=self.GenerateDiagonalRay(Bitboards,kingBitboard,dx=(-1),dy=1)
 
         if diagRay3 &  (enemyPawns | enemyQueen | enemyBishops | enemyKing):
             return False
         
-        diagRay4=self.generateDiagonalRay(Bitboards,kingBitboard,dx=(-1),dy=(-1))
+        diagRay4=self.GenerateDiagonalRay(Bitboards,kingBitboard,dx=(-1),dy=(-1))
 
         if diagRay4 &  (enemyPawns | enemyQueen | enemyBishops | enemyKing):
             return False
@@ -873,7 +826,7 @@ class JugadorPc(Jugador):
 
 
 
-    def generateVerticalRay(self,Bitboards,position,dy):
+    def GenerateVerticalRay(self,Bitboards,position,dy):
         ROW_1 = 0b11111111
         ROW_8 = ROW_1<<56
 
@@ -895,7 +848,7 @@ class JugadorPc(Jugador):
         
         return ray
     
-    def generateHorizontalRay(self,Bitboards,position,dx):
+    def GenerateHorizontalRay(self,Bitboards,position,dx):
         COL_1 = 0x0101010101010101  
         COL_8 = 0x8080808080808080
 
@@ -917,7 +870,7 @@ class JugadorPc(Jugador):
         
         return ray
     
-    def generateDiagonalRay(self,Bitboards,position,dx,dy):
+    def GenerateDiagonalRay(self,Bitboards,position,dx,dy):
         COL_1 = 0x0101010101010101  
         COL_8 = 0x8080808080808080
 
@@ -942,80 +895,222 @@ class JugadorPc(Jugador):
                 break
         
         return ray
+    
+    def generatePseudoLegalMovments(self,Bitboards,Color):
 
+        MovementsPawn=self.GeneratePseudoLegalMovementsPawn(Bitboards[PieceDictionary["P"]+colorDictionary[Color]],Bitboards[IDX_WHITE_BITBOARD],Bitboards[IDX_BLACK_BITBOARD],Color)
+        MovementsQueen=self.GeneratePseudoLegalMovementsQueen(Bitboards[PieceDictionary["Q"]+colorDictionary[Color]],Bitboards[IDX_WHITE_BITBOARD],Bitboards[IDX_BLACK_BITBOARD],Color)
+        MovementsKing=self.generatePseudoLegalMovementsKing(Bitboards[PieceDictionary["K"]+colorDictionary[Color]],Bitboards[IDX_WHITE_BITBOARD],Bitboards[IDX_BLACK_BITBOARD],Color)
+        MovementsTower=self.GeneratePseudoLegalMovementsTower(Bitboards[PieceDictionary["T"]+colorDictionary[Color]],Bitboards[IDX_WHITE_BITBOARD],Bitboards[IDX_BLACK_BITBOARD],Color)
+        MovementsHorse=self.GeneratePseudoLegalMovementsHorse(Bitboards[PieceDictionary["H"]+colorDictionary[Color]],Bitboards[IDX_WHITE_BITBOARD],Bitboards[IDX_BLACK_BITBOARD],Color)
+        MovementsBishop=self.GeneratePseudoLegalMovementsBishop(Bitboards[PieceDictionary["B"]+colorDictionary[Color]],Bitboards[IDX_WHITE_BITBOARD],Bitboards[IDX_BLACK_BITBOARD],Color)
+
+        return MovementsQueen + MovementsTower + MovementsHorse + MovementsBishop + MovementsPawn + MovementsKing
+
+    def scoreHorsePosition(self,HorseBitboard:int,Color):
+
+        score=0
+
+        score+=((HorseBitboard&MASK_CENTER).bit_count())*20
+        
+        score+=((HorseBitboard&BORDER_CENTER).bit_count())*15
+        
+        score+=((HorseBitboard&MASK_CENTER_CORNERS).bit_count())*10
+
+        score-=((HorseBitboard&MASK_SIDE_CROSS).bit_count())*30
+
+        score-=((HorseBitboard&MASK_NEAR_CORNERS).bit_count())*40
+        
+        score-=((HorseBitboard&MASK_INNER_CORNERS_ADJACENT).bit_count())*20
+
+        score-=((HorseBitboard&MASK_CORNERS).bit_count())*50
+        
+        return score
+    
+    def scoreBishopPositions(self,BishopBitboard,color):
+
+        score=0
+
+        MaskAttack=0x8040201008440240 if color=="W" else 0x00420408102040C0
+
+        score+=((BishopBitboard&MaskAttack).bit_count())*15
+
+        score += (BishopBitboard & BORDER_CENTER).bit_count() * 20
+        score += (BishopBitboard & MASK_CENTER).bit_count() * 15
+        score += (BishopBitboard & MASK_CENTER_CORNERS).bit_count() * 10
+
+        score += (BishopBitboard & MASK_BISHOP_LONG).bit_count() * 15
+        score += (BishopBitboard & MASK_BISHOP_MID).bit_count() * 5
+
+        score -= (BishopBitboard & MASK_SIDE_CROSS).bit_count() * 20
+        score -= (BishopBitboard & MASK_CORNERS).bit_count() * 40
+        score -= (BishopBitboard & MASK_NEAR_CORNERS).bit_count() * 25
+
+        return score
+
+        
+    def scoreTowerPositions(self,TowerBitboard,color):
+
+        score=0
+
+        r2= ROW_2 if color=="W" else ROW_7
+        r7= ROW_7 if color=="W" else ROW_2
+        r8= ROW_8 if color=="W" else ROW_1
+
+        score += ((TowerBitboard&r8).bit_count()) * 15
+        score += ((TowerBitboard&r7).bit_count()) * 30
+        score += ((TowerBitboard&r2).bit_count()) * 10
+        score += ((TowerBitboard&MASK_CENTER).bit_count()) * 10
+
+        score -= ((TowerBitboard&MASK_SIDE_STRIPS_VERTICAL).bit_count()) * 5
+
+        return score
+    
+    def scoreQueenPositions(self,QueenBitboard,color):
+
+        score=0
+
+        score += ((QueenBitboard&MASK_CENTER).bit_count()) * 10
+        score += ((QueenBitboard&BORDER_CENTER&MASK_CENTER_CORNERS).bit_count()) * 5
+
+        score -= ((QueenBitboard&MASK_CORNERS).bit_count()) * 20
+        score -= ((QueenBitboard&MASK_SIDE_CROSS).bit_count()) * 15
+        score -= ((QueenBitboard&MASK_NEAR_CORNERS).bit_count()) * 10
+
+        return score
+    
+    def scoreKingPositions(self,KingBitboard,color):
+
+        score=0
+
+        king_safe_zone = 0x00000000000000C6 if color=="W" else 0xC600000000000000
+    
+        score += (KingBitboard & king_safe_zone).bit_count() * 30
+    
+        score -= (KingBitboard & MASK_CENTER).bit_count() * 50
+        score -= (KingBitboard & BORDER_CENTER).bit_count() * 30
+
+        return score
+
+
+
+
+
+    def scorePositions(self,BitBoards:list):
+        staralie=colorDictionary[self.color]
+        startEnemey=colorDictionary[self.enemyColor]
+
+        myHorseScore=self.scoreHorsePosition(BitBoards[PieceDictionary["H"]+staralie],self.color)
+        enemyHorseScore=self.scoreHorsePosition(BitBoards[PieceDictionary["H"]+startEnemey],self.enemyColor)
+
+        myBishopScore=self.scoreBishopPositions(BitBoards[PieceDictionary["B"]+colorDictionary[self.color]],self.color)
+        enemyBishopScore=self.scoreBishopPositions(BitBoards[PieceDictionary["B"]+colorDictionary[self.enemyColor]],self.enemyColor)
+
+        myTowerScore=self.scoreTowerPositions(BitBoards[PieceDictionary["T"]+colorDictionary[self.color]],self.color)
+        enemyToweScore=self.scoreTowerPositions(BitBoards[PieceDictionary["T"]+colorDictionary[self.enemyColor]],self.enemyColor)
+
+        myQueenScore=self.scoreQueenPositions(BitBoards[PieceDictionary["Q"]+colorDictionary[self.color]],self.color)
+        enemyQueenScore=self.scoreQueenPositions(BitBoards[PieceDictionary["Q"]+colorDictionary[self.enemyColor]],self.color)
+
+        myKingScore=self.scoreKingPositions(BitBoards[PieceDictionary["K"]+colorDictionary[self.color]],self.color)
+        enemyKingScore=self.scoreKingPositions(BitBoards[PieceDictionary["K"]+colorDictionary[self.enemyColor]],self.color)
+
+        score=myHorseScore-enemyHorseScore+myBishopScore-enemyBishopScore+myTowerScore-enemyToweScore+myQueenScore-enemyQueenScore+myKingScore-enemyKingScore
+
+        return score
+    
+    def filtherMovements(self,Movements,Bitboards,color):
+        LegalMovements=[]
+
+        for Move in Movements:
+
+            capture=self.make_move_on_Bitboard(Bitboards,Move,color)
+
+            if self.isKingSafe(Bitboards,color):
+                LegalMovements.append(Move)
+            
+            self.unmake_move(Bitboards,Move,capture,color)
+        
+        return LegalMovements
 
     def alpha_Beta(self,height,Bitboards,alpha,beta):
+
+        currentColor=self.color if ((height%2)==0) else self.enemyColor
+
+        print(f"altura:{height}, turno:{currentColor}")
 
         if height==0:
 
             self.BestMove=0
-            self.BestValue=-10**9
+            self.BestScore=-10**9
 
         if height==self.MaxTreeHeight:
-            return self.puntuarTablero(Bitboards,height)
+            return (self.ScoreBoard(Bitboards)+self.scorePositions(Bitboards))
 
-        LegalMovesPawn=self.LegalPawnMovements(Bitboards,self.color if (height%2)==0 else self.enemyColor)
-        
-        LegalMovesQueen=self.LegalQueenMovements(Bitboards,self.color if (height%2)==0 else self.enemyColor)
-        
-        LegalMovesBishop=self.LegalBishopMovements(Bitboards,self.color if (height%2)==0 else self.enemyColor)
-        
-        LegalMovesTower=self.LegalTowerMovements(Bitboards,self.color if (height%2)==0 else self.enemyColor)
-        
-        LegalMovesKing=self.LegalKingMovements(Bitboards,self.color if (height%2)==0 else self.enemyColor)
-        
-        LegalMovesHorse=self.LegalHorseMovements(Bitboards,self.color if (height%2)==0 else self.enemyColor)
+        allMoves = self.generatePseudoLegalMovments(Bitboards,currentColor)
 
-        allLegalMoves=LegalMovesQueen+LegalMovesBishop+LegalMovesHorse+LegalMovesKing+LegalMovesPawn+LegalMovesTower
+        LegalMovements=self.filtherMovements(allMoves,Bitboards,currentColor)
 
-        currentColor=self.color if (height%2)==0 else self.enemyColor
+        if height==0:
+            print(f"los movimientos sin filtrar son:{allMoves}")
+            print(f"los movimientos legales son:{LegalMovements}")
 
-        if len(allLegalMoves)==0:
+        if len(LegalMovements)==0:
 
-            if not(self.evaluarJaque(Bitboards,currentColor)):
+            if not(self.isKingSafe(Bitboards,currentColor)):
+                
 
-                points=(10**9 - height) if height%2==0 else ((-10)**9 + height)
+                points=((10)**9 - height) if (height%2)==0 else ((-10)**9 + height)
+
             else:
 
                 points=0
 
-            return points 
+            return points
+
 
         if (height%2)==0:
 
-            for Move in allLegalMoves:
+            for Move in LegalMovements:
+
+                print(f"bestMove is:{self.BestMove}")
+                print(f"bestValue is:{self.BestScore}")
 
                 capture=self.make_move_on_Bitboard(Bitboards,Move,currentColor)
-
+                
                 alpha=max(alpha,self.alpha_Beta(height+1,Bitboards,alpha,beta))
 
                 self.unmake_move(Bitboards,Move,capture,currentColor)
 
-                if height==0 and alpha>self.BestValue:
-                    self.BestValue=alpha
+                if height==0 and alpha>self.BestScore:
+
+                    self.BestScore=alpha
                     self.BestMove=Move
 
-                if beta<=alpha:
+
+                if alpha >= beta:
                     break
-            
+
             return alpha
 
         else:      
             
-            for Move in allLegalMoves:
+            for Move in LegalMovements:
 
                 capture=self.make_move_on_Bitboard(Bitboards,Move,currentColor)
                 
                 beta=min(beta,self.alpha_Beta(height+1,Bitboards,alpha,beta))
-
+                
                 self.unmake_move(Bitboards,Move,capture,currentColor)
-                if beta>=alpha:
+
+                if beta <= alpha:
                     break
-
+            
             return beta
-        
+    
 
-    def puntuarTablero(self,Bitboards,height):
+
+    def ScoreBoard(self,Bitboards):
 
         ValueDictionary={
             "K":0,
@@ -1036,10 +1131,7 @@ class JugadorPc(Jugador):
             "Q":5
         }
 
-        startDict={
-            "B":0,
-            "W":7,
-        }
+        
 
 
         materialPointsSelf=0
@@ -1060,8 +1152,8 @@ class JugadorPc(Jugador):
 
         materialPoints= materialPointsSelf - materialPointsEnemy
 
-        checkKingSelf=(-200) if self.evaluarJaque(Bitboards,self.color) else 0
-        checkKingEnemy=(150) if self.evaluarJaque(Bitboards,self.enemyColor) else 0
+        checkKingSelf=(-200) if self.isKingSafe(Bitboards,self.color) else 0
+        checkKingEnemy=(150) if self.isKingSafe(Bitboards,self.enemyColor) else 0
 
         selfPawns=Bitboards[PieceDictionary["P"] + startDict[self.color]]
 
@@ -1078,17 +1170,9 @@ class JugadorPc(Jugador):
 
         return totalPoints
 
-
-
     def translateMove(self,Move:tuple):
 
         origin,destiny,type=Move
-
-        colOrigin=origin%255
-        rowOrigin=0
-
-        colDestiny=destiny%255
-        rowDestiny=0
 
         for i in range(64):
 
@@ -1111,17 +1195,14 @@ class JugadorPc(Jugador):
         rowDestiny=i//8
 
         return ((rowOrigin,colOrigin),(rowDestiny,colDestiny))
-
-
-
-
-
     
     def make_choice(self,PoscicionesTablero):
         bitBoards=self.generateBitBoards(PoscicionesTablero)
 
-        self.alpha_Beta(0,bitBoards,-10**9,10**9)
+        print(self.alpha_Beta(0,bitBoards,-10**9,10**9))
 
+        print((self.BestMove))
+        input()
         return self.translateMove(self.BestMove)
 
     def evaluarPromocionPosible(self,Pawn,occupiedBitboard):
@@ -1149,12 +1230,3 @@ class JugadorPc(Jugador):
         points=900/(distance)
 
         return points
-        
-
-
-
-        
-        
-
-
-        

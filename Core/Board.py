@@ -1,6 +1,6 @@
-from Pieza import *
+from Core.Piece import *
 import copy
-import Movimiento
+from Core.Movement import Movement
 
 class Board:
 
@@ -50,7 +50,7 @@ class Board:
         self.positions[destiny[0]][destiny[1]]=self.positions[origin[0]][origin[1]]
         self.positions[origin[0]][origin[1]]=None
     
-    def unMakeMove(self,Mov=Movimiento.Movement):
+    def unMakeMove(self,Mov:Movement):
         origin=Mov.get_origin()
         destiny=Mov.get_destiny()
         isCapture=Mov.get_isCapture()
@@ -205,7 +205,7 @@ class Board:
         return squares
     
 
-    def generateDiagonalSquare(self,square):
+    def generateDiagonalSquares(self,square):
 
         squares=[]
 
@@ -301,3 +301,5 @@ class Board:
         self.positions[Square[0]][Square[1]]=piece
         return self.positions
     
+    def increaseMovements(self,square):
+        self.positions[square[0]][square[1]].incr_mov()

@@ -1,10 +1,10 @@
-class Promocion:
+class Promotion:
     
     def __init__(self,square,choice):
         self.square=square
         self.pieceChoice=choice
     
-    def get_piezaElegida(self):
+    def getPieceChoice(self):
         return self.pieceChoice
 
     

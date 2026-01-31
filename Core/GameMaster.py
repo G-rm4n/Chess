@@ -1,14 +1,8 @@
-import Tablero
-
+from Core import Board
 
 class GameMaster:
-
-    def __init__(self,hayT,hayE,temporizador):
-        self.hayTablas=hayT
-        self.hayEnroque=hayE
-        self.temporizador=temporizador
-
-    def getAttackersX(self,Board:Tablero.Board,square,color):
+    
+    def getAttackersX(self,Board:Board.Board,square,color):
 
         attackers=[]
 
@@ -32,7 +26,7 @@ class GameMaster:
     def isAttack(self,destiny,board,color):
         return board.isOccupied(destiny) and board.getPiece(destiny).get_color()!=color
     
-    def verifyLegality(self,origin,destiny,Board:Tablero.Board,color):
+    def verifyLegality(self,origin,destiny,Board:Board.Board,color):
         piece=Board.getPiece(origin)
 
         if piece is None or piece.get_color()!=color:
@@ -78,7 +72,7 @@ class GameMaster:
         return True
 
     
-    def getAttackersY(self,Board:Tablero.Board,square,color):
+    def getAttackersY(self,Board:Board.Board,square,color):
 
         attackers=[]
 
@@ -96,13 +90,11 @@ class GameMaster:
 
         return attackers
     
-    def getAttackersDiag(self,Board:Tablero.Board,square,color):
+    def getAttackersDiag(self,Board:Board.Board,square,color):
 
         attackers=[]
 
-        resul=Board.generateDiagonalSquare(square)
-
-        
+        resul=Board.generateDiagonalSquares(square)
 
         for squaree in resul:
 
@@ -151,15 +143,12 @@ class GameMaster:
     def evaluateCheck(self,color,Board):
         posRey=Board.getKingSquare(color)
 
-
         attackers=self.evaluateAttack(Board,posRey,color)
-
-        
 
         return attackers
 
     
-    def evaluateCheckMate(self,Board:Tablero.Board,attackers,color):
+    def evaluateCheckMate(self,Board:Board.Board,attackers,color):
 
         kingSquare=Board.getKingSquare(color)
         
@@ -173,17 +162,11 @@ class GameMaster:
             if len(counterResponse)!=0 and any(self.verifyLegality(counter,attacker,Board,color) 
                                                 for counter in counterResponse):
                 
-                
                 return False
             
             if Board.getPiece(attacker).get_type_movement()!="NT":
                                           
                 intermediateSquares=Board.getIntermediateSquare(kingSquare,attacker)
-
-                
-
-                #print(f"casillas intermedias entre el atacante y el rey:{intermediateSquares}")
-                #input()
 
                 for square in intermediateSquares:
 
@@ -202,8 +185,6 @@ class GameMaster:
                              for dy,dx in kingDisplacements
                              if 0<=kingSquare[0]+dy<=7 and 0<=kingSquare[1]+dx<=7]
         
-        #print(f"las posibles casillas a donde puede moverse el rey son:{possibleSquares}")
-        
         for squares in possibleSquares:
 
             piece=Board.getPiece(squares)
@@ -213,12 +194,9 @@ class GameMaster:
                 if len(self.evaluateAttack(Board,squares,color))==0:
 
                     if self.verifyLegality(kingSquare,squares,Board,color):
-                        input()
 
                         return False
 
-            #print(f"la casilla: {squares} esta atacada o vacia o tiene a alguien del rey por lo cual el rey esta en jaque")
-    
         return True
 
 

@@ -1,5 +1,5 @@
-import Pieza
-import Jugador
+import Core.Piece as Piece
+
 
 class Movement:
 
@@ -7,8 +7,7 @@ class Movement:
         self.origin=origin
         self.destiny=destiny
         self.isCaptura=isCapture
-        self.capturedPiece=Pieza.Piece
-        self.Jugador=Jugador.Player
+        self.capturedPiece=Piece.Piece
     
     def get_origin(self):
         return self.origin
@@ -20,7 +19,7 @@ class Movement:
         return self.isCaptura
     
     
-    def set_capture(self,p_captured=Pieza):
+    def set_capture(self,p_captured=Piece):
         self.capturedPiece=p_captured
         return self.capturedPiece
     

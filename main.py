@@ -62,20 +62,12 @@ while True:
     
     if state==GameStates.Movement_Choiced:
 
-        print("entro aqui")
-
-        print(origin,destiny)
-
         if not(board.validateCoords(origin,destiny)):
-            print("a")
-            input()
             ConsoleDisplay.displayCoordError()
             state=previousState
             continue
 
         if not(GameMasterinst.verifyLegality(origin,destiny,board,currentColor)):
-            print("a")
-            input()
             ConsoleDisplay.displayMovementError()
             state=previousState
             continue

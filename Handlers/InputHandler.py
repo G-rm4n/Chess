@@ -26,20 +26,30 @@ class ConsoleInputHandler:
     def Get_Choice():
 
         pattern=r"^\((\d),(\d)\)$"
+        giveUpInput="(-1,-1)"
 
         while True:
-            origin=input("enter origin coord '(Y,X)':")
+            origin=input("enter origin coord '(Y,X)' or (-1,-1) if you want to Give Up:")
             match=re.match(pattern,origin)
-            if(match):
+            if origin==giveUpInput:
+                origin=(-1,-1)
+                break
+
+            elif(match):
                 origin=(int(match.group(1)),int(match.group(2)))
                 break
-
+        
         while True:
-            destiny=input("enter destiny coord '(Y,X)':")
+            destiny=input("enter destiny coord '(Y,X)' or (-1,-1) if you want to Give Up:")
             match=re.match(pattern,destiny)
-            if(match):
+            if destiny==giveUpInput:
+                destiny=(-1,-1)
+                break
+
+            elif(match):
                 destiny=(int(match.group(1)),int(match.group(2)))
                 break
+            
         
         return origin,destiny
     

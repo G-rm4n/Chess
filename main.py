@@ -25,9 +25,11 @@ BotColor=""
 
 while True:
     if len(player_king_attackers)>0 and GameMasterinst.evaluateCheckMate(board,player_king_attackers,PlayerColor):
+        state=GameStates.CHECKMATE
         break
     
     if len(bot_king_attackers)>0 and GameMasterinst.evaluateCheckMate(board,bot_king_attackers,BotColor):
+        state=GameStates.CHECKMATE
         break
 
     if state==GameStates.PREPARINGGAME:
@@ -47,8 +49,14 @@ while True:
         ConsoleDisplay.DisplayTurn(state)
         origin,destiny=InputHandler.ConsoleInputHandler.Get_Choice()
         previousState=state
-        state=GameStates.Movement_Choiced
         
+            
+        state=GameStates.Movement_Choiced
+
+        if origin ==(-1,-1) and destiny==(-1,-1):
+            break
+        
+    
 
     if state==GameStates.Bot_TURN:
         ConsoleDisplay.DisplayBoard(board)
@@ -57,6 +65,9 @@ while True:
         origin,destiny=choose[0],choose[1]
         previousState=state
         state=GameStates.Movement_Choiced
+
+        if origin == (-1,-1) and destiny==(-1,-1):
+            break
         
 
     
@@ -88,22 +99,18 @@ while True:
 
         if GameMasterinst.verifyPromotion(board.getPiece(destiny),destiny):
 
-            choice=(InputHandler.ConsoleInputHandler.Get_Choice_promotion()) if previousState==GameStates.PLAYER_TURN else (bot.choosePromotion)
+            choice=(InputHandler.ConsoleInputHandler.Get_Choice_promotion()) if previousState==GameStates.PLAYER_TURN else (bot.choosePromotion())
             newPiece=board.createNewPiece(choice,PlayerColor if previousState==GameStates.PLAYER_TURN else BotColor)
             board.assingPiece(destiny,newPiece)
 
         state=(GameStates.Bot_TURN) if previousState==GameStates.PLAYER_TURN else GameStates.PLAYER_TURN
+
+        if state==GameStates.CHECKMATE:
+            break
 
     player_king_attackers=GameMasterinst.evaluateCheck(PlayerColor,board)
     bot_king_attackers=GameMasterinst.evaluateCheck(BotColor,board)
 
     currentColor=(BotColor if currentColor==PlayerColor else PlayerColor)
 
-        
-
-    
-    
-
-
-
-    
+print("gameOver") 

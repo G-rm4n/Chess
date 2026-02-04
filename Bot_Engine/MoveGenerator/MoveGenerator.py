@@ -27,6 +27,7 @@ class MoveGenerator:
 
             Movement1=((BitBoard&(~ROW_8))<<8) & (~(BitBoardOccupied_White | BitBoardOcuppied_Black))
             Movement2=((BitBoard&ROW_2&(~ROW_8_7))<<16) & (~(BitBoardOccupied_White | BitBoardOcuppied_Black))
+            Movement2=(Movement2 & (Movement1<<8))
             attack1=((BitBoard&(~ROW_8)&(~COL_8))<<9)&BitBoardOcuppied_Black
             attack2=((BitBoard&(~COL_1)&(~ROW_8))<<7)&BitBoardOcuppied_Black
 
@@ -62,6 +63,7 @@ class MoveGenerator:
         else:
             Movement1=((BitBoard&(~(ROW_1)))>>8) & (~(BitBoardOccupied_White | BitBoardOcuppied_Black))
             Movement2=((BitBoard&ROW_7&(~ROW_1_2))>>16) & (~(BitBoardOccupied_White | BitBoardOcuppied_Black))
+            Movement2=(Movement2 & (Movement1>>8))
             attack1=((BitBoard&(~COL_1)&(~ROW_1))>>9)&BitBoardOccupied_White
             attack2=((BitBoard&(~COL_8))&(~(ROW_1))>>7)&BitBoardOccupied_White
 

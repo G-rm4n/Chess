@@ -67,7 +67,7 @@ class Tower(Piece):
     def validateMovement(self,origin,destiny,isAttack=bool):
         dy=abs(destiny[0]-origin[0])
         dx=abs(destiny[1]-origin[1])
-        return dy==0 or dx==0
+        return (dy==0 and dx!=0) or (dx==0 and dy!=0)
     
     def getType(self):
         return "TOWER"
@@ -87,7 +87,7 @@ class King(Piece):
     def validateMovement(self,origin,destiny,isAttack=bool):
         dy=abs(destiny[0]-origin[0])
         dx=abs(destiny[1]-origin[1])
-        return dx==1 or dy==1
+        return (dx==1 and dy==0) or (dy==1 and dx==0) or (dy==1 and dx==1)
     
     def getType(self):
         return "KING"
@@ -110,7 +110,7 @@ class Queen(Piece):
     def validateMovement(self,origin,destiny,isAttack=bool):
         dy=abs(destiny[0]-origin[0])
         dx=abs(destiny[1]-origin[1])
-        return dx==0 or dy==0 or dx==dy
+        return (dx==0 and dy!=0) or (dy==0 and dx!=0) or dx==dy
     
     def getType(self):
         return "QUEEN"

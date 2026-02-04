@@ -1,5 +1,5 @@
 from Adapters.Bitboard import Bitboard
-from Bot_Engine.constants import INF,NEG_INF,REVERSEPIECEDICTIONARY,IDX_BLACK_BITBOARD,IDX_OCCUPIED,IDX_WHITE_BITBOARD
+from Bot_Engine.constants import INF,NEG_INF
 from Bot_Engine.Evaluate import Evaluator
 from Bot_Engine.MoveGenerator.MoveGenerator import MoveGenerator
 from Bot_Engine.legalCheck import legalChecker
@@ -70,6 +70,7 @@ class bot:
         if height==self.MaxHeight:
 
                 score=(Evaluator.ScoreBoard(Bitboards,self.botcolor,self.enemyColor)+ Evaluator.scorePositions(Bitboards,self.botcolor,self.enemyColor))
+                self.TranspositionTable.storeState(Bitboards,score,height,"T",currentColor,colorFlag)
                 return score
             
         allMoves = MoveGenerator.generatePseudoLegalMovments(Bitboards,currentColor)
@@ -86,6 +87,7 @@ class bot:
             else:
 
                 points=0
+
             self.TranspositionTable.storeState(Bitboards,points,height,"T",currentColor,colorFlag)
 
             return points
@@ -158,13 +160,11 @@ class bot:
 
         self.alphaBetaSearch(0,BitboardList,NEG_INF,INF)
 
-        print(self.BestMovementFound)
-        input()
-
-        choose=Translator.translateMove(self.BestMovementFound)
+        choose=Translator.translateMove(self.BestMovementFound) if self.BestMovementFound!=0 else ((-1,-1),(-1,-1))
 
         return choose
     
     def choosePromotion(self):
 
         return "QUEEN"
+

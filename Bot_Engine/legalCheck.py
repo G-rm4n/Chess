@@ -51,6 +51,12 @@ class legalChecker:
         if (Vray1 | Vray2) & (enemyQueen | enemyTowers | enemyKing):
             return False
         
+        Hray1=RayGenerator.GenerateHorizontalRay(Bitboards,kingBitboard,dx=1)
+        Hray2=RayGenerator.GenerateHorizontalRay(Bitboards,kingBitboard,dx=(-1))
+
+        if (Hray1 | Hray2) & (enemyQueen | enemyTowers | enemyKing):
+            return False
+        
         diagRay1=RayGenerator.GenerateDiagonalRay(Bitboards,kingBitboard,dx=1,dy=1)
 
         if diagRay1 &  (enemyPawns | enemyQueen | enemyBishops | enemyKing):

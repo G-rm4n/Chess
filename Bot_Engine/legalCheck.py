@@ -32,10 +32,12 @@ class legalChecker:
         enemyBishops=Bitboards[10 if color=="W" else 3]
         enemyKing=Bitboards[7 if color=="W" else 0]
 
-        possiblePawns=((((kingBitboard & (~ROW_8) & (~COL_8))<<9)   | 
-                        ((kingBitboard & (~ROW_8) & (~COL_1))<<7)   |
-                        (((kingBitboard & (~ROW_1) & (~COL_1)))>>9) |
-                        ((kingBitboard) & (~ROW_1) & (~COL_8))>>7))
+        if color=="W":
+            possiblePawns=((((kingBitboard & (~ROW_8) & (~COL_8))<<9)   | 
+                            ((kingBitboard & (~ROW_8) & (~COL_1))<<7)))
+        else:
+            possiblePawns=((((kingBitboard & (~ROW_1) & (~COL_1)))>>9) |
+                           ((kingBitboard) & (~ROW_1) & (~COL_8))>>7)
 
         PossibleHorses=((((kingBitboard & (~(COL_8)) & (~(ROW_8_7)))<<17)) |
                          ((kingBitboard & (~(COL_1)) & (~(ROW_8_7)))<<15) | 

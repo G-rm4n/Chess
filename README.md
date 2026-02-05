@@ -1,7 +1,7 @@
 # Chess Engine in Python 
 
 ## Summary
-- Chess engine developed entirely in Python, using using a layered architecture with adapter-based boundaries inspired by hexagonal architecture.
+- Chess engine developed entirely in Python, using a layered architecture with adapter-based boundaries inspired by hexagonal architecture.
 - Bitboard-based representation for fast move generation and board evaluation.
 - AI player implemented using alpha-beta pruning and transposition tables.
 - Core classes designed following object-oriented programming principles and Single Responsibility Principle (SRP).

@@ -38,9 +38,11 @@ class bot:
 
             if NodeType == "E":
 
-                if height ==0 and self.BestScoreFound<score:
+                if height == 0 and self.BestScoreFound<score:
                     self.BestScoreFound=score
-                    self.BestMovementFound=NodeValues.get("move")
+                    move = NodeValues.get("move")
+
+                    self.BestMovementFound=move
 
                 if height!=0:
                     return score
@@ -55,7 +57,9 @@ class bot:
 
                 if height==0 and self.BestScoreFound<score:
                     self.BestScoreFound=score
-                    self.BestMovementFound=NodeValues.get("move")
+                    move = NodeValues.get("move")
+
+                    self.BestMovementFound=move
                 
                 alpha=max(score,alpha)
             
@@ -65,7 +69,18 @@ class bot:
                 beta=min(score,beta)
             
             if alpha>=beta:
-                return score
+
+                if self.BestMovementFound!=0:
+
+                    return score
+                
+                # Si BestMovementFound == 0 y alpha >= beta, usar fallback
+                if height!=0:
+                    # En niveles profundos, retornamos el score (el padre actualizará)
+                    return score
+                # Si height == 0, continuar al fallback que está después del loop
+
+           
 
         if height==self.MaxHeight:
 
@@ -94,10 +109,9 @@ class bot:
 
         LegalMovements.sort(key=lambda m: Evaluator.ScoreMove(m,Bitboards,currentColor),reverse=True)
 
-        bestLocalMove=None
+        bestLocalMove=0
         if (height%2)==0:
             best=-INF
-            
 
             for Move in LegalMovements:
 
@@ -125,7 +139,7 @@ class bot:
 
             else:
                 self.TranspositionTable.storeState(Bitboards,best,height,"E",currentColor,colorFlag,bestLocalMove)
-
+            
             return best
 
         else:      
@@ -154,12 +168,12 @@ class bot:
 
             return best
         
-    def chooseMovement(self,BoardPositions):
+    def chooseMovement(self, BoardPositions):
 
         BitboardList=Bitboard.generateBitboards(BoardPositions)
 
         self.alphaBetaSearch(0,BitboardList,NEG_INF,INF)
-
+        
         choose=Translator.translateMove(self.BestMovementFound) if self.BestMovementFound!=0 else ((-1,-1),(-1,-1))
 
         return choose

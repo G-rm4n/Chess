@@ -74,11 +74,11 @@ class bot:
 
                     return score
                 
-                # Si BestMovementFound == 0 y alpha >= beta, usar fallback
+                
                 if height!=0:
-                    # En niveles profundos, retornamos el score (el padre actualizará)
+                    
                     return score
-                # Si height == 0, continuar al fallback que está después del loop
+                
 
            
 
@@ -173,7 +173,7 @@ class bot:
         BitboardList=Bitboard.generateBitboards(BoardPositions)
 
         self.alphaBetaSearch(0,BitboardList,NEG_INF,INF)
-        
+
         choose=Translator.translateMove(self.BestMovementFound) if self.BestMovementFound!=0 else ((-1,-1),(-1,-1))
 
         return choose

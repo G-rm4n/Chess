@@ -19,7 +19,7 @@ class TranspositionTable:
     #type=E -> MaxHeight Reached
     #type=L -> Lowerbound
     #typer=U -> UpperBound
-    def storeState(self,State,score,deep,type,colorTurn,flagColor,move=None):
+    def storeState(self,State,score,deep,type,colorTurn,flagColor,move=0):
         
         zooHash=self.zoobrist.compute_zoobristHash(State,flagColor)
 

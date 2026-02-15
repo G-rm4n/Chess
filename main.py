@@ -2,7 +2,7 @@ from Core import Board, GameMaster, Movement,Promotion
 from States import GameStates
 from Handlers import InputHandler
 from UI.Display import ConsoleDisplay
-from Bot_Engine import Bot
+from AI_Engine import Bot
 
 
 state=GameStates.PREPARINGGAME

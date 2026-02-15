@@ -1,4 +1,4 @@
-from Bot_Engine import Bot
+from AI_Engine import Bot
 from Adapters.Bitboard import Bitboard
 from Adapters.Translator import Translator
 
